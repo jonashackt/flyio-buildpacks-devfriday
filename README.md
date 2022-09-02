@@ -6,6 +6,8 @@ Having a look at https://fly.io/
 
 https://fly.io/docs/hands-on/install-flyctl/
 
+
+
 ### Install flyctl
 
 On a Mac install flyctl via brew:
@@ -24,6 +26,7 @@ flyctl auth signup
 ![signup-to-flyio](screenshots/signup-to-flyio.png)
 
 
+
 ### Launch example Spring Boot app on fly.io
 
 Let's use https://github.com/jonashackt/microservice-api-spring-boot
@@ -33,6 +36,32 @@ So check it out locally and run
 ```
 flyctl launch --image flyio/hellofly:latest
 ```
+
+
+### Configure Buildpacks support for Spring Boot in fly.io
+
+Opposed to what's stated in the docs https://fly.io/docs/reference/configuration/#the-build-section DO NOT add this to your `fly.toml`:
+
+```
+[build]
+  builder = "paketobuildpacks/builder:base"
+  buildpacks = ["gcr.io/paketo-buildpacks/spring-boot"]
+```
+
+This will lead to errors like:
+
+```
+
+```
+
+Instead don't use the `buildpacks` entry and simply use the `builder` tag only:
+
+```toml
+[build]
+  builder = "paketobuildpacks/builder:base"
+```
+
+This should activate the Buildpacks detection for your project correctly.
 
 
 
@@ -52,4 +81,28 @@ Fix [as stated here](https://community.fly.io/t/out-of-memory-restarts/1629/3):
 
 ```shell
 flyctl scale memory 1024
+```
+
+TODO: configure in `[env]` field in `fly.toml`
+
+
+
+### Configure `internal_port` in `services` section
+
+Configure your app's port https://fly.io/docs/reference/configuration/#the-services-sections
+
+```toml
+[[services]]
+  http_checks = []
+  internal_port = 8098
+```
+
+
+### Deactivate https
+
+```
+  [[services.ports]]
+    # force_https = true
+    handlers = ["http"]
+    port = 80
 ```
